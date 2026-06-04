@@ -1,9 +1,9 @@
 import requests
 from requests.exceptions import HTTPError, RequestException
-from bs4 import BeautifulSoup
 
 
 def scrape_grades(session: requests.Session, grades_url: str) -> str | None:
+    """Access the grades page using the authenticated session and return the HTML content"""
     try:
         get_response = session.get(grades_url, timeout=10)
         get_response.raise_for_status()
