@@ -4,13 +4,14 @@ from bs4 import BeautifulSoup
 
 
 def auth_lk(login_url: str, email: str, password: str) -> requests.Session | None:
+    """Log in to the personal account on the website using given credentials and return an authenticated session"""
     session = requests.Session()
 
     session.headers.update({
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 OPR/110.0.0.0 (Edition std-1)',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Sec-Ch-Ua': '"Opera GX";v="110", "Chromium";v="124", "Not-A.Brand";v="24"',
+        'Sec-Ch-Ua': '"Chromium";v="124", "Not-A.Brand";v="24"',
         'Sec-Ch-Ua-Mobile': '?0',
         'Sec-Ch-Ua-Platform': '"Linux"'
     })
