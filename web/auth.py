@@ -23,7 +23,7 @@ def auth_lk(login_url: str, email: str, password: str) -> requests.Session | Non
         csrf_input = soup.find('input', {'name': '_csrf-frontend'})
 
         if not csrf_input:
-            print("Ошибка логина: На странице нет поля _csrf-frontend. Структура формы входа могла измениться")
+            print("Ошибка авторизации: На странице нет поля _csrf-frontend. Структура формы входа могла измениться")
             return None
 
         csrf_token = csrf_input.get('value')
@@ -37,18 +37,18 @@ def auth_lk(login_url: str, email: str, password: str) -> requests.Session | Non
         post_response.raise_for_status()
 
         if "У нас нет пользователей с такой почтой" in post_response.text:
-            print("Ошибка логина: Неверный email")
+            print("Ошибка авторизации: Неверный email")
             return None
         elif "Неверный пароль" in post_response.text:
-            print("Ошибка логина: Неверный пароль")
+            print("Ошибка авторизации: Неверный пароль")
             return None
 
         return session
 
     except HTTPError as http_error:
-        print(f"Ошибка HTTP: {http_error}")
+        print(f"Ошибка HTTP при авторизации: {http_error}")
         return None
 
     except RequestException as req_error:
-        print(f"Ошибка сетевого подключения: {req_error}")
+        print(f"Ошибка сетевого подключения при авторизации: {req_error}")
         return None
