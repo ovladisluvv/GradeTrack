@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 def parse_grades(html_content: str) -> list[list[dict[str, str]]]:
     soup = BeautifulSoup(html_content, 'html.parser')
-    grades_data = [[], [], [], [], [], [], [], [], [], [], [], []]
+    grades_data = [[], [], [], [], [], [], [], [], [], [], [], [], []]
     grade_rows = soup.select('tr[data-key]')
 
     for row in grade_rows:
