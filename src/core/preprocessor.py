@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from src.core.grade_info import GradeInfo
+
 
 def is_in_diploma(
     subject: str,
@@ -29,11 +31,11 @@ def is_in_diploma(
 
 
 def preprocess_grades(
-    grades_data: list[list[dict[str, str]]],
+    grades_data: list[GradeInfo],
     faculty: str,
     study_program: str,
     department: str | None = None
-) -> list[list[dict[str, str | int]]]:
+) -> list[GradeInfo]:
     """Preprocess grades data by converting text grades to numeric values and filtering out non-passed and non-graded subjects"""
     grade_labels = {
         "отл": 5,
@@ -43,27 +45,24 @@ def preprocess_grades(
 
     processed_grades = []
 
-    for semester_num, semester_grades in enumerate(grades_data, start=1):
-        semester_processed = []
+    for grade_record in grades_data:
+        grade_name = grade_record.grade_text.lower()
 
-        for grade_record in semester_grades:
-            grade_value = grade_record['grade'].lower()
+        if grade_name.startswith("не"):
+            continue
 
-            if grade_value.startswith("не"):
-                continue
+        for label, numeric_grade in grade_labels.items():
+            if label in grade_name:
+                in_diploma = is_in_diploma(grade_record.subject, grade_record.semester, faculty, study_program, department)
 
-            for label, numeric_grade in grade_labels.items():
-                if label in grade_value:
-                    in_diploma = is_in_diploma(grade_record['subject'], semester_num, faculty, study_program, department)
+                processed_grades.append(GradeInfo(
+                    subject=grade_record.subject,
+                    grade_text=grade_record.grade_text,
+                    grade_num=numeric_grade,
+                    in_diploma=in_diploma,
+                    semester=grade_record.semester
+                ))
 
-                    semester_processed.append({
-                        "subject": grade_record['subject'],
-                        "grade": numeric_grade,
-                        "in_diploma": in_diploma
-                    })
-
-                    break
-
-        processed_grades.append(semester_processed)
+                break
 
     return processed_grades
