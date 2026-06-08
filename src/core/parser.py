@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 
 
 def parse_grades(html_content: str) -> list[list[dict[str, str]]]:
+    """Parse the HTML content of the grades page and extract the grades information"""
     soup = BeautifulSoup(html_content, 'html.parser')
     grades_data = [[], [], [], [], [], [], [], [], [], [], [], [], []]
     grade_rows = soup.select('tr[data-key]')
@@ -22,18 +23,15 @@ def parse_grades(html_content: str) -> list[list[dict[str, str]]]:
 
         if subject_span:
             subject = subject_span.get_text(strip=True)
-            is_diploma_subject = True
         else:
             subject_node = subject_td.find(string=True, recursive=False)
             subject = subject_node.strip() if subject_node else None
-            is_diploma_subject = False
 
         grade = grade_td.get_text(strip=True)
 
         grades_data[semester - 1].append({
             "subject": subject,
-            "grade": grade,
-            "in_diploma": is_diploma_subject
+            "grade": grade
         })
 
     return grades_data
