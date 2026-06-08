@@ -1,10 +1,16 @@
 from pathlib import Path
 
 
-def is_in_diploma(subject: str, semester_num: int, faculty: str, study_program: str, department: str | None = None) -> bool:
+def is_in_diploma(
+    subject: str,
+    semester_num: int,
+    faculty: str,
+    study_program: str,
+    department: str | None = None
+) -> bool:
     """Check if the subject is included in the diploma for the given semester"""
     filename = f"sem{semester_num}.txt"
-    BASE_DIR = Path(__file__).resolve().parent
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent
     filepath = BASE_DIR / "data" / "in_diploma" / faculty / study_program
 
     if semester_num > 4 and department:
@@ -22,7 +28,12 @@ def is_in_diploma(subject: str, semester_num: int, faculty: str, study_program: 
     return False
 
 
-def preprocess_grades(grades_data: list[list[dict[str, str]]], faculty: str, study_program: str, department: str | None = None) -> list[list[dict[str, str | int]]]:
+def preprocess_grades(
+    grades_data: list[list[dict[str, str]]],
+    faculty: str,
+    study_program: str,
+    department: str | None = None
+) -> list[list[dict[str, str | int]]]:
     """Preprocess grades data by converting text grades to numeric values and filtering out non-passed and non-graded subjects"""
     grade_labels = {
         "отл": 5,
