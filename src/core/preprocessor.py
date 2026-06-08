@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.core.grade_info import GradeInfo
+from core import GradeInfo
 
 
 def is_in_diploma(

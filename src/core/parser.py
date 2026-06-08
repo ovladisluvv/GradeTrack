@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from src.core.grade_info import GradeInfo
+from core import GradeInfo
 
 
 def parse_grades(html_content: str) -> list[GradeInfo]:
