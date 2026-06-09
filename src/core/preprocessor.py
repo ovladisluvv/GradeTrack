@@ -1,68 +1,57 @@
-from pathlib import Path
-
-from core import GradeInfo
+from core import GradeInfo, DiplomaSubjectsInfo
 
 
-def is_in_diploma(
-    subject: str,
-    semester_num: int,
-    faculty: str,
-    study_program: str,
-    department: str | None = None
-) -> bool:
-    """Check if the subject is included in the diploma for the given semester"""
-    filename = f"sem{semester_num}.txt"
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    filepath = BASE_DIR / "data" / "in_diploma" / faculty / study_program
+GRADE_LABELS = {
+    "отл": 5,
+    "хор": 4,
+    "удов": 3
+}
 
-    if semester_num > 4 and department:
-        filepath = filepath / department / filename
-    else:
-        filepath = filepath / filename
 
-    with filepath.open("r", encoding="utf-8") as file:
-        for diploma_subject in file:
-            diploma_subject = diploma_subject.strip().lower()
+def get_numeric_grade(grade_text: str) -> int | None:
+    """Convert text grade to numeric value based on the defined grade labels"""
+    grade_name = grade_text.lower()
 
-            if diploma_subject in subject.lower():
-                return True
+    if grade_name.startswith("не"):
+        return None
 
-    return False
+    for label, numeric_grade in GRADE_LABELS.items():
+        if label in grade_name:
+            return numeric_grade
+
+    return None
 
 
 def preprocess_grades(
     grades_data: list[GradeInfo],
+    diploma_subjects: DiplomaSubjectsInfo,
     faculty: str,
     study_program: str,
     department: str | None = None
 ) -> list[GradeInfo]:
     """Preprocess grades data by converting text grades to numeric values and filtering out non-passed and non-graded subjects"""
-    grade_labels = {
-        "отл": 5,
-        "хор": 4,
-        "удов": 3
-    }
-
     processed_grades = []
 
     for grade_record in grades_data:
-        grade_name = grade_record.grade_text.lower()
+        numeric_grade = get_numeric_grade(grade_record.grade_text)
 
-        if grade_name.startswith("не"):
+        if numeric_grade is None:
             continue
 
-        for label, numeric_grade in grade_labels.items():
-            if label in grade_name:
-                in_diploma = is_in_diploma(grade_record.subject, grade_record.semester, faculty, study_program, department)
+        in_diploma = diploma_subjects.is_in_diploma(
+            subject=grade_record.subject,
+            semester=grade_record.semester,
+            faculty=faculty,
+            study_program=study_program,
+            department=department
+        )
 
-                processed_grades.append(GradeInfo(
-                    subject=grade_record.subject,
-                    grade_text=grade_record.grade_text,
-                    grade_num=numeric_grade,
-                    in_diploma=in_diploma,
-                    semester=grade_record.semester
-                ))
-
-                break
+        processed_grades.append(GradeInfo(
+            subject=grade_record.subject,
+            grade_text=grade_record.grade_text,
+            grade_num=numeric_grade,
+            in_diploma=in_diploma,
+            semester=grade_record.semester
+        ))
 
     return processed_grades
