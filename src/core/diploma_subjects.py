@@ -14,7 +14,7 @@ class DiplomaSubjectsInfo:
     """
     def __init__(self, diploma_subjects_dir: str | Path, max_semesters: int = 13):
         self.diploma_subjects_dir = Path(diploma_subjects_dir)
-        self.max_semesters = max_semesters
+        self.max_semesters = max_semesters # there's an extra semester for state exams and graduation thesis defense
 
     def get_semester_file_path(
         self,

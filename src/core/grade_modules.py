@@ -10,7 +10,7 @@ class GradeInfo:
 
 class DistinctionCheckResult:
     """Data class to store the result of checking if diploma with distinction is reachable"""
-    def __init__(self, is_reachable: bool, grade5_percentage: float, messages: list[str]):
+    def __init__(self, is_reachable: bool, grade4_limit: int, messages: list[str]):
         self.is_reachable = is_reachable
-        self.grade5_percentage = grade5_percentage
+        self.grade4_limit = grade4_limit
         self.messages = messages
