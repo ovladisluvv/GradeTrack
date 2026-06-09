@@ -24,7 +24,7 @@ def is_in_diploma(
         for diploma_subject in file:
             diploma_subject = diploma_subject.strip().lower()
 
-            if subject.lower() in diploma_subject:
+            if diploma_subject in subject.lower():
                 return True
 
     return False
