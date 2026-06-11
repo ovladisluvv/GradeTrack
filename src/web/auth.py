@@ -2,8 +2,16 @@ import requests
 from requests.exceptions import HTTPError, RequestException
 from bs4 import BeautifulSoup
 
+from .exceptions import (
+    LoginPageLoadError,
+    CsrfTokenNotFoundError,
+    LoginRequestError,
+    InvalidEmailError,
+    InvalidPasswordError
+)
 
-def auth_lk(login_url: str, email: str, password: str) -> requests.Session | None:
+
+def auth_lk(login_url: str, email: str, password: str) -> requests.Session:
     """Log in to the personal account on the website using given credentials and return an authenticated session"""
     session = requests.Session()
 
@@ -20,36 +28,43 @@ def auth_lk(login_url: str, email: str, password: str) -> requests.Session | Non
         get_response = session.get(login_url, timeout=10)
         get_response.raise_for_status()
 
-        soup = BeautifulSoup(get_response.text, 'html.parser')
-        csrf_input = soup.find('input', {'name': '_csrf-frontend'})
+    except HTTPError as error:
+        raise LoginPageLoadError(f"Ошибка HTTP при загрузке страницы авторизации: {error}") from error
 
-        if not csrf_input:
-            print("Ошибка авторизации: На странице нет поля _csrf-frontend. Структура формы входа могла измениться")
-            return None
+    except RequestException as error:
+        raise LoginPageLoadError(f"Ошибка сетевого подключения при загрузке страницы авторизации: {error}") from error
 
-        csrf_token = csrf_input.get('value')
-        login_payload = {
-            '_csrf-frontend': csrf_token,
-            'LoginForm[email]': email,
-            'LoginForm[password]': password
-        }
+    soup = BeautifulSoup(get_response.text, 'html.parser')
+    csrf_input = soup.find('input', {'name': '_csrf-frontend'})
 
+    if not csrf_input:
+        raise CsrfTokenNotFoundError("На странице нет поля _csrf-frontend. Структура формы входа могла измениться")
+
+    csrf_token = csrf_input.get('value')
+
+    if not csrf_token:
+        raise CsrfTokenNotFoundError("Поле _csrf-frontend найдено, но не содержит значения")
+
+    login_payload = {
+        '_csrf-frontend': csrf_token,
+        'LoginForm[email]': email,
+        'LoginForm[password]': password
+    }
+
+    try:
         post_response = session.post(login_url, data=login_payload, timeout=10)
         post_response.raise_for_status()
 
-        if "У нас нет пользователей с такой почтой" in post_response.text:
-            print("Ошибка авторизации: Неверный email")
-            return None
-        elif "Неверный пароль" in post_response.text:
-            print("Ошибка авторизации: Неверный пароль")
-            return None
+    except HTTPError as error:
+        raise LoginRequestError(f"Ошибка HTTP при отправке запроса авторизации: {error}") from error
 
-        return session
+    except RequestException as error:
+        raise LoginRequestError(f"Ошибка сетевого подключения при отправке запроса авторизации: {error}") from error
 
-    except HTTPError as http_error:
-        print(f"Ошибка HTTP при авторизации: {http_error}")
-        return None
+    if "У нас нет пользователей с такой почтой" in post_response.text:
+        raise InvalidEmailError("Ошибка авторизации: Неверный email")
 
-    except RequestException as req_error:
-        print(f"Ошибка сетевого подключения при авторизации: {req_error}")
-        return None
+    elif "Неверный пароль" in post_response.text:
+        raise InvalidPasswordError("Ошибка авторизации: Неверный пароль")
+
+    return session
