@@ -85,6 +85,9 @@ class DiplomaSubjectsInfo:
         subject_count = 0
 
         for semester in range(1, self.max_semesters + 1):
+            if semester > 4 and not department:
+                break
+
             subjects = self.get_subjects_for_semester(
                 faculty=faculty,
                 study_program=study_program,

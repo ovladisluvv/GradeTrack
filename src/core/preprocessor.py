@@ -17,7 +17,7 @@ def get_numeric_grade(grade_text: str) -> int | None:
         return None
 
     for label, numeric_grade in GRADE_LABELS.items():
-        if label in grade_name:
+        if grade_name.startswith(label):
             return numeric_grade
 
     return None

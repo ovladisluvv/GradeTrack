@@ -7,6 +7,9 @@ def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_show
     Retakes is the number of failed attempts counted as grade 2
     If semesters_shown is provided, only grades up to that semester will be considered in the calculation
     """
+    if retakes < 0:
+        raise ValueError("Ошибка: Число пересдач не может быть отрицательным")
+
     if semesters_shown is None:
         grade_values = [grade.grade_num for grade in grades_data]
     else:
