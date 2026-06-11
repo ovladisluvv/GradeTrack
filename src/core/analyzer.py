@@ -1,4 +1,4 @@
-from core import GradeInfo, DistinctionCheckResult
+from .grade_modules import GradeInfo, DistinctionCheckResult
 
 
 def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_shown: int | None = None) -> tuple[float, float]:

@@ -1,4 +1,5 @@
-from core import GradeInfo, DiplomaSubjectsInfo
+from .grade_modules import GradeInfo
+from .diploma_subjects import DiplomaSubjectsInfo
 
 
 GRADE_LABELS = {
