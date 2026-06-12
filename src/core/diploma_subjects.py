@@ -3,7 +3,7 @@ from pathlib import Path
 
 class DiplomaSubjectsInfo:
     """
-    Reads diploma-inclusion subjects from data/in_diploma.
+    Reads diploma-inclusion subjects from data/in_diploma
 
     Expected structure:
         data/in_diploma/<faculty>/<study_program>/sem1.txt
@@ -14,7 +14,7 @@ class DiplomaSubjectsInfo:
     """
     def __init__(self, diploma_subjects_dir: str | Path, max_semesters: int = 13):
         self.diploma_subjects_dir = Path(diploma_subjects_dir)
-        self.max_semesters = max_semesters # there's an extra semester for state exams and graduation thesis defense
+        self.max_semesters = max_semesters  # there's an extra semester for state exams and graduation thesis defense
 
     def get_semester_file_path(
         self,
