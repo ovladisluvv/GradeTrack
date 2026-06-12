@@ -1,6 +1,9 @@
 from pathlib import Path
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
 class DiplomaSubjectsInfo:
     """
     Reads diploma-inclusion subjects from data/in_diploma
@@ -12,9 +15,9 @@ class DiplomaSubjectsInfo:
         data/in_diploma/<faculty>/<study_program>/<department>/sem5.txt
         ...
     """
-    def __init__(self, diploma_subjects_dir: str | Path, max_semesters: int = 13):
-        self.diploma_subjects_dir = Path(diploma_subjects_dir)
-        self.max_semesters = max_semesters  # there's an extra semester for state exams and graduation thesis defense
+    def __init__(self, max_semesters: int = 13):
+        self.diploma_subjects_dir = BASE_DIR / "data" / "in_diploma"  # Path to the directory containing diploma subjects
+        self.max_semesters = max_semesters  # There's an extra semester for state exams and graduation thesis defense
 
     def get_semester_file_path(
         self,

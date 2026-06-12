@@ -24,10 +24,10 @@ class GradesAnalysisResult:
         avg_grade: float,
         avg_grade_wo_retake: float,
         diploma_stats: dict[int, int],
-        distinction_result: DistinctionCheckResult
+        distinction: DistinctionCheckResult
     ):
         self.grades = grades
         self.avg_grade = avg_grade
         self.avg_grade_wo_retake = avg_grade_wo_retake
         self.diploma_stats = diploma_stats
-        self.distinction_result = distinction_result
+        self.distinction = distinction

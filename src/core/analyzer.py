@@ -42,7 +42,7 @@ def get_diploma_grades_stats(grades_data: list[GradeInfo]) -> dict[int, int]:
 def diploma_with_distinction_check(diploma_stats: dict[int, int], diploma_subjects_count: int) -> DistinctionCheckResult:
     """Check if the student can receive a diploma with distinction based on the diploma stats"""
     is_reachable = True
-    grade4_limit = diploma_subjects_count // 4  # no more than 25% of "Хорошо" grades
+    grade4_limit = diploma_subjects_count // 4  # No more than 25% of "Хорошо" grades
     messages = []
 
     if diploma_stats[3] > 3:
