@@ -1,8 +1,5 @@
-from pathlib import Path
-
 from web import auth_lk, scrape_grades
 from core import (
-    GradeInfo,
     DiplomaSubjectsInfo,
     GradesAnalysisResult,
     parse_grades,
@@ -64,16 +61,17 @@ def analyze_from_html(
 
     avg_grade, avg_grade_wo_retake = get_avg_grade(grades_data=processed_grades, retakes=retakes, semesters_shown=semesters_shown)
 
-    diploma_stats = get_diploma_grades_stats(processed_grades)
+    diploma_grade_counts, avg_diploma_grade = get_diploma_grades_stats(processed_grades)
     diploma_subjects_count = diploma_subjects.count_subjects(faculty=faculty, study_program=study_program, department=department)
 
-    distinction = diploma_with_distinction_check(diploma_stats=diploma_stats, diploma_subjects_count=diploma_subjects_count)
+    distinction = diploma_with_distinction_check(diploma_grade_counts=diploma_grade_counts, diploma_subjects_count=diploma_subjects_count)
 
     result = GradesAnalysisResult(
         grades=processed_grades,
         avg_grade=avg_grade,
         avg_grade_wo_retake=avg_grade_wo_retake,
-        diploma_stats=diploma_stats,
+        avg_diploma_grade=avg_diploma_grade,
+        diploma_grade_counts=diploma_grade_counts,
         distinction=distinction
     )
 
