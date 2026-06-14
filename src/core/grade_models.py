@@ -23,11 +23,13 @@ class GradesAnalysisResult:
         grades: list[GradeInfo],
         avg_grade: float,
         avg_grade_wo_retake: float,
-        diploma_stats: dict[int, int],
+        avg_diploma_grade: float,
+        diploma_grade_counts: dict[int, int],
         distinction: DistinctionCheckResult
     ):
         self.grades = grades
         self.avg_grade = avg_grade
         self.avg_grade_wo_retake = avg_grade_wo_retake
-        self.diploma_stats = diploma_stats
+        self.avg_diploma_grade = avg_diploma_grade
+        self.diploma_grade_counts = diploma_grade_counts
         self.distinction = distinction

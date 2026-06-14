@@ -1,4 +1,4 @@
-from .grade_modules import GradeInfo
+from .grade_models import GradeInfo
 from .diploma_subjects import DiplomaSubjectsInfo
 
 

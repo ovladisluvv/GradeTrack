@@ -1,4 +1,4 @@
-from .grade_modules import GradeInfo, DistinctionCheckResult, GradesAnalysisResult
+from .grade_models import GradeInfo, DistinctionCheckResult, GradesAnalysisResult
 from .diploma_subjects import DiplomaSubjectsInfo
 from .parser import parse_grades
 from .preprocessor import preprocess_grades

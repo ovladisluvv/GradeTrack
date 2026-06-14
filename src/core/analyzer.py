@@ -1,4 +1,4 @@
-from .grade_modules import GradeInfo, DistinctionCheckResult
+from .grade_models import GradeInfo, DistinctionCheckResult
 
 
 def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_shown: int | None = None) -> tuple[float, float]:
@@ -24,9 +24,9 @@ def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_show
     return avg_grade, avg_grade_wo_retake
 
 
-def get_diploma_grades_stats(grades_data: list[GradeInfo]) -> dict[int, int]:
+def get_diploma_grades_stats(grades_data: list[GradeInfo]) -> tuple[dict[int, int], float]:
     """Count diploma-included grades by grade value"""
-    diploma_grades_stats = {
+    diploma_grade_counts = {
         3: 0,
         4: 0,
         5: 0
@@ -34,21 +34,27 @@ def get_diploma_grades_stats(grades_data: list[GradeInfo]) -> dict[int, int]:
 
     for grade_record in grades_data:
         if grade_record.in_diploma:
-            diploma_grades_stats[grade_record.grade_num] += 1
+            diploma_grade_counts[grade_record.grade_num] += 1
 
-    return diploma_grades_stats
+    avg_diploma_grade = (3 * diploma_grade_counts[3] + 4 * diploma_grade_counts[4] + 5 * diploma_grade_counts[5]) / sum(diploma_grade_counts.values()) if sum(diploma_grade_counts.values()) > 0 else 0.0
+
+    return diploma_grade_counts, avg_diploma_grade
 
 
-def diploma_with_distinction_check(diploma_stats: dict[int, int], diploma_subjects_count: int) -> DistinctionCheckResult:
+def diploma_with_distinction_check(diploma_grade_counts: dict[int, int], diploma_subjects_count: int) -> DistinctionCheckResult:
     """Check if the student can receive a diploma with distinction based on the diploma stats"""
     is_reachable = True
     grade4_limit = diploma_subjects_count // 4  # No more than 25% of "Хорошо" grades
     messages = []
 
-    if diploma_stats[3] > 3:
+    grade3_count = diploma_grade_counts[3]
+    grade4_count = diploma_grade_counts[4]
+    max_retakes_allowed = 3
+
+    if grade3_count > max_retakes_allowed:
         messages.append('В дипломе слишком много оценок "Удовлетворительно" для получения диплома с отличием')
         is_reachable = False
-    elif diploma_stats[4] + diploma_stats[3] > grade4_limit + 3:  # 3 subjects can be retaken
+    elif grade4_count + grade3_count > grade4_limit + max_retakes_allowed:  # max_retakes_allowed subjects can be retaken
         messages.append(f'В дипломе слишком много оценок "Хорошо" для получения диплома с отличием')
         is_reachable = False
     else:
@@ -56,11 +62,11 @@ def diploma_with_distinction_check(diploma_stats: dict[int, int], diploma_subjec
 
         retakes_needed = []
 
-        if diploma_stats[3] > 0:
-            retakes_needed.append(f'{diploma_stats[3]} оценок "Удовлетворительно"')
+        if grade3_count > 0:
+            retakes_needed.append(f'{grade3_count} оценок "Удовлетворительно"')
 
-        if diploma_stats[4] > grade4_limit:
-            retakes_needed.append(f'{diploma_stats[4] - grade4_limit} оценок "Хорошо"')
+        if grade4_count > grade4_limit:
+            retakes_needed.append(f'{grade4_count - grade4_limit} оценок "Хорошо"')
 
         if retakes_needed:
             message = "Для его получения необходимо пересдать "
