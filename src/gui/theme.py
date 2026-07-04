@@ -1,6 +1,9 @@
-import urllib.request
+import sys
+import logging
 from pathlib import Path
 from PyQt6.QtGui import QFontDatabase
+
+logger = logging.getLogger(__name__)
 
 # Color palette constants
 COLOR_BG = "#0C0C0C"  # Black for background
@@ -12,10 +15,57 @@ COLOR_ERROR = "#FF3333"  # Red for critical errors
 COLOR_BTN_BG = "#151515"  # Gray for unhovered button background
 
 # Used fonts. Press Start 2P is a pixel font for terminal look
-FONT_FAMILY = "'Press Start 2P', 'Courier New', Terminal, monospace"
+PRIMARY_FONT_NAME = "Press Start 2P"
+FALLBACK_FONT_NAME = "Courier New"
+FONT_FILE_NAME = "PressStart2P-Regular.ttf"
 
-# Complete Qt Style Sheets string for application skinning
-TERMINAL_STYLESHEET = f"""
+
+def get_source_path(*path_parts: str) -> Path:
+    """
+    Returns path to bundled resources. Expected source paths based on execution context:
+    1. Python run:
+       gui/fonts/PressStart2P-Regular.ttf
+
+    2. .exe:
+       temporary _MEIPASS/fonts/PressStart2P-Regular.ttf
+    """
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS).joinpath(*path_parts)
+
+    return Path(__file__).resolve().parent.joinpath(*path_parts)
+
+
+def init_fonts() -> str:
+    """Registers bundled application font and returns resolved font family name string"""
+    if PRIMARY_FONT_NAME in QFontDatabase.families():
+        return PRIMARY_FONT_NAME
+
+    font_path = get_source_path("fonts", FONT_FILE_NAME)
+
+    if not font_path.exists():
+        logger.warning(f"Font file not found: {font_path}")
+        return FALLBACK_FONT_NAME
+
+    font_id = QFontDatabase.addApplicationFont(str(font_path))
+
+    if font_id == -1:
+        logger.warning(f"Failed to register font: {font_path}")
+        return FALLBACK_FONT_NAME
+
+    font_families = QFontDatabase.applicationFontFamilies(font_id)
+
+    if not font_families:
+        logger.warning(f"No font families found after registering font: {font_path}")
+        return FALLBACK_FONT_NAME
+
+    return font_families[0]
+
+
+def build_stylesheet(font_family: str) -> str:
+    """Returns complete Qt Style Sheets string for application skinning"""
+    font_stack = f"'{font_family}', '{FALLBACK_FONT_NAME}', Terminal, monospace"
+
+    stylesheet = f"""
 QMainWindow {{
     background-color: {COLOR_BG};
 }}
@@ -25,7 +75,7 @@ QTextEdit, QTextBrowser {{
     color: {COLOR_PRIMARY};
     border: 2px solid {COLOR_SECONDARY};
     border-radius: 0px;
-    font-family: {FONT_FAMILY};
+    font-family: {font_stack};
     font-size: 9pt;
     line-height: 1.6;
     padding: 12px;
@@ -66,7 +116,7 @@ QPushButton {{
     border: 2px solid {COLOR_SECONDARY};
     border-radius: 0px;
     padding: 10px 14px;
-    font-family: {FONT_FAMILY};
+    font-family: {font_stack};
     font-size: 8pt;
     font-weight: bold;
 }}
@@ -93,7 +143,7 @@ QPushButton:disabled {{
 /* Labels inside the UI */
 QLabel {{
     color: {COLOR_PRIMARY};
-    font-family: {FONT_FAMILY};
+    font-family: {font_stack};
     font-size: 8pt;
 }}
 
@@ -111,34 +161,4 @@ QLabel {{
 }}
 """
 
-
-def init_fonts() -> str:
-    """
-    Attempts to download and register the 'Press Start 2P' font dynamically if it is missing from the local operating system
-    Returns the resolved primary font family name string
-    """
-    font_name = "Press Start 2P"
-
-    if font_name in QFontDatabase().families():
-        return font_name
-
-    try:
-        font_dir = Path(__file__).parent / "fonts"
-        font_dir.mkdir(exist_ok=True)
-        font_path = font_dir / "PressStart2P-Regular.ttf"
-
-        if not font_path.exists():
-            url = "https://github.com/google/fonts/raw/main/ofl/pressstart2p/PressStart2P-Regular.ttf"
-            with urllib.request.urlopen(url, timeout=5) as response:
-                font_path.write_bytes(response.read())
-
-        font_id = QFontDatabase.addApplicationFont(str(font_path))
-        if font_id != -1:
-            families = QFontDatabase.applicationFontFamilies(font_id)
-            if families:
-                return families[0]
-    except Exception:
-        # Fail safe: if no network or writing fails, fallback to OS monospace stack
-        pass
-
-    return "Courier New"
+    return stylesheet
