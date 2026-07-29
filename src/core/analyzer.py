@@ -1,7 +1,7 @@
 from .grade_models import GradeInfo, DistinctionCheckResult
 
 
-def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_shown: int | None = None) -> tuple[float, float]:
+def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_shown: int = 0) -> tuple[float, float]:
     """
     Calculate average grade with and without retakes for the given grades data
     Retakes is the number of failed attempts counted as grade 2
@@ -10,7 +10,7 @@ def get_avg_grade(grades_data: list[GradeInfo], retakes: int = 0, semesters_show
     if retakes < 0:
         raise ValueError("Ошибка: Число пересдач не может быть отрицательным")
 
-    if semesters_shown is None:
+    if semesters_shown == 0:
         grade_values = [grade.grade_num for grade in grades_data]
     else:
         grade_values = [grade.grade_num for grade in grades_data if grade.semester <= semesters_shown]
@@ -43,6 +43,17 @@ def get_diploma_grades_stats(grades_data: list[GradeInfo]) -> tuple[dict[int, in
 
 def diploma_with_distinction_check(diploma_grade_counts: dict[int, int], diploma_subjects_count: int) -> DistinctionCheckResult:
     """Check if the student can receive a diploma with distinction based on the diploma stats"""
+    if diploma_subjects_count <= 0:
+        # No diploma subjects were found: usually a misconfigured faculty/program/department or missing data/in_diploma files
+        return DistinctionCheckResult(
+            is_reachable=False,
+            grade4_limit=0,
+            messages=[
+                "Не удалось определить предметы диплома. Проверьте факультет/программу/кафедру "
+                "в настройках и наличие файлов в data/in_diploma"
+            ]
+        )
+
     is_reachable = True
     grade4_limit = diploma_subjects_count // 4  # No more than 25% of "Хорошо" grades
     messages = []
@@ -63,10 +74,23 @@ def diploma_with_distinction_check(diploma_grade_counts: dict[int, int], diploma
         retakes_needed = []
 
         if grade3_count > 0:
-            retakes_needed.append(f'{grade3_count} оценок "Удовлетворительно"')
+            message = f'{grade3_count} '
+            if grade3_count == 1:
+                message += "оценку"
+            else:
+                message += "оценки"
+            message += ' "Удовлетворительно"'
+            retakes_needed.append(message)
+            
 
         if grade4_count > grade4_limit:
-            retakes_needed.append(f'{grade4_count - grade4_limit} оценок "Хорошо"')
+            message = f'{grade4_count - grade4_limit} '
+            if (grade4_count - grade4_limit) == 1:
+                message += "оценку"
+            else:
+                message += "оценки"
+            message += ' "Хорошо"'
+            retakes_needed.append(message)
 
         if retakes_needed:
             message = "Для его получения необходимо пересдать "

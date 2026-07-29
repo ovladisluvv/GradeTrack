@@ -27,7 +27,7 @@ def parse_grades(html_content: str) -> list[GradeInfo]:
             subject = subject_span.get_text(strip=True)
         else:
             subject_node = subject_td.find(string=True, recursive=False)
-            subject = subject_node.strip()
+            subject = subject_node.strip() if subject_node else subject_td.get_text(strip=True)
 
         grade = grade_td.get_text(strip=True)
 

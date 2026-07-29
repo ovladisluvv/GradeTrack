@@ -19,7 +19,7 @@ def analyze_from_web(
     study_program: str,
     department: str | None = None,
     retakes: int = 0,
-    semesters_shown: int | None = None
+    semesters_shown: int = 0
 ) -> GradesAnalysisResult:
     """Start the analysis of grades from the web"""
     session = auth_lk(login_url=login_url, email=email, password=password)
@@ -44,7 +44,7 @@ def analyze_from_html(
     study_program: str,
     department: str | None = None,
     retakes: int = 0,
-    semesters_shown: int | None = None
+    semesters_shown: int = 0
 ) -> GradesAnalysisResult:
     """Analyze grades from loaded HTML. Is useful for tests"""
     diploma_subjects = DiplomaSubjectsInfo()
