@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QFrame,
+    QLabel,
     QPushButton
 )
 
@@ -51,12 +52,17 @@ class MainWindow(QMainWindow):
 
         self.wizard = WizardView(central)
 
+        self.footer = QLabel("GradeTrack v1.0 · made by ovladisluvv · 2026", central)
+        self.footer.setObjectName("footer_label")
+        self.footer.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
         layout.addLayout(top_bar)
         layout.addSpacing(8)
         layout.addWidget(self.terminal, stretch=3)
         layout.addSpacing(12)
         layout.addWidget(self.separator)
         layout.addWidget(self.wizard, stretch=1)
+        layout.addWidget(self.footer)
 
         self.setCentralWidget(central)
 

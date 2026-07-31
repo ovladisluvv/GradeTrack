@@ -6,15 +6,16 @@ from PyQt6.QtGui import QFontDatabase
 logger = logging.getLogger(__name__)
 
 # Color palette constants
-COLOR_BG = "#0B0E0C"  # Near-black, faint green tint, for the window background
-COLOR_SCREEN_BG = "#0A0F0C"  # Slightly deeper background for the output console
-COLOR_PRIMARY = "#3BE86B"  # Bright phosphor green for headings / active accents
-COLOR_TEXT = "#9AD0AB"  # Muted green for regular body text
-COLOR_SECONDARY = "#1F9E4B"  # Dim green for echoes and secondary marks
-COLOR_ACCENT = "#F2D65C"  # Warm amber for prompts, stage headers and highlights
-COLOR_ERROR = "#FF5C5C"  # Soft red for errors
-COLOR_NUMBER = "#4FE8DC"  # Turquoise for numeric values
-COLOR_BORDER = "#1E3A28"  # Dim green, low-contrast borders and the separator line
+COLOR_BG = "#0B0E0C" # Near-black, faint green tint, for the window background
+COLOR_SCREEN_BG = "#0A0F0C" # Slightly deeper background for the output console
+COLOR_PRIMARY = "#3BE86B" # Bright phosphor green for headings / active accents
+COLOR_TEXT = "#9AD0AB" # Muted green for regular body text
+COLOR_SECONDARY = "#1F9E4B" # Dim green for echoes and secondary marks
+COLOR_ACCENT = "#F2D65C" # Warm amber for prompts, stage headers and highlights
+COLOR_ERROR = "#FF5C5C" # Soft red for errors
+COLOR_NUMBER = "#4FE8DC" # Turquoise for numeric values
+COLOR_BORDER = "#1E3A28" # Dim green, low-contrast borders and the separator line
+COLOR_FOOTER = "#5A7062" # Muted grey-green for the unobtrusive footer signature
 
 # Button state colors
 COLOR_BTN_BG = "#141B10" # rest background
@@ -227,6 +228,15 @@ QLabel {{
     color: {COLOR_TEXT};
     font-family: {body_stack};
     font-size: 10pt;
+}}
+
+/* Footer signature at the bottom-left of the window */
+QLabel#footer_label {{
+    color: {COLOR_FOOTER};
+    font-family: {body_stack};
+    font-size: 8pt;
+    font-weight: normal;
+    padding: 2px 4px 0px 4px;
 }}
 """
 
