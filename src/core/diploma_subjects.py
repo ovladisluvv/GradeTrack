@@ -1,7 +1,6 @@
 from pathlib import Path
 
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+from utils import resource_path
 
 
 class DiplomaSubjectsInfo:
@@ -16,8 +15,8 @@ class DiplomaSubjectsInfo:
         ...
     """
     def __init__(self, max_semesters: int = 13):
-        self.diploma_subjects_dir = BASE_DIR / "data" / "in_diploma"  # Path to the directory containing diploma subjects
-        self.max_semesters = max_semesters  # There's an extra semester for state exams and graduation thesis defense
+        self.diploma_subjects_dir = resource_path("data", "in_diploma") # Path to the directory containing diploma subjects
+        self.max_semesters = max_semesters # There's an extra semester for state exams and graduation thesis defense
 
     def get_semester_file_path(
         self,

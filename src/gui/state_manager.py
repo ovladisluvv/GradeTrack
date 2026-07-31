@@ -1,8 +1,7 @@
 import logging
-from pathlib import Path
 from PyQt6.QtCore import QObject, QThread, pyqtSignal, QTimer
 
-from utils import load_config
+from utils import load_config, resource_path
 from web import (
     auth_lk,
     scrape_grades,
@@ -16,8 +15,6 @@ from core import parse_grades, GradesAnalysisResult
 from gui import TerminalView, WizardView
 
 logger = logging.getLogger(__name__)
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 class AuthWorker(QObject):
@@ -302,11 +299,11 @@ class StateManager(QObject):
     def _load_configuration(self) -> None:
         """Loads URLs from config.yaml and menu structures from university_structure.yaml"""
         try:
-            config = load_config(BASE_DIR / "config" / "config.yaml")
+            config = load_config(resource_path("config", "config.yaml"))
             self.login_url = config["login_url"]
             self.grades_url = config["grades_url"]
 
-            structure = load_config(BASE_DIR / "data" / "university_structure.yaml")
+            structure = load_config(resource_path("data", "university_structure.yaml"))
             self.faculties = structure.get("faculties", {})
             self.programs = structure.get("programs", {})
             self.departments = structure.get("departments", {})
@@ -391,7 +388,7 @@ class StateManager(QObject):
     def _load_local_test_grades(self) -> None:
         """Loads grades HTML from the bundled local test file (offline test account)"""
         self.terminal.print_line("\nТестовый режим: загрузка локальных данных...", "info")
-        path = BASE_DIR / "data" / self.TEST_GRADES_FILE
+        path = resource_path("data", self.TEST_GRADES_FILE)
 
         try:
             html = path.read_text(encoding="utf-8")
