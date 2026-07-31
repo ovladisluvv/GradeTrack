@@ -48,23 +48,36 @@ def auth_lk(login_url: str, email: str, password: str) -> requests.Session:
     login_payload = {
         '_csrf-frontend': csrf_token,
         'LoginForm[email]': email,
-        'LoginForm[password]': password
+        'LoginForm[password]': password,
+        "LoginForm[rememberMe]": "1"
     }
 
     try:
         post_response = session.post(login_url, data=login_payload, timeout=10)
         post_response.raise_for_status()
+        post_soup = BeautifulSoup(post_response.text, "html.parser")
+        login_form = post_soup.select_one("form#login-form")
+
+        if login_form:
+            errors = [
+                element.get_text(" ", strip=True)
+                for element in post_soup.select("#login-form .help-block-error")
+                if element.get_text(strip=True)
+            ]
+
+            details = "; ".join(errors)
+
+            if not details:
+                details = ("Сайт повторно вернул страницу входа. Проверьте email, пароль и изменения формы авторизации")
+
+            raise LoginRequestError(
+                f"Авторизация не выполнена: {details}"
+            )
+
+        return session
 
     except HTTPError as error:
         raise LoginRequestError(f"Ошибка HTTP при отправке запроса авторизации: {error}") from error
 
     except RequestException as error:
         raise LoginRequestError(f"Ошибка сетевого подключения при отправке запроса авторизации: {error}") from error
-
-    if "У нас нет пользователей с такой почтой" in post_response.text:
-        raise InvalidEmailError("Ошибка авторизации: Неверный email")
-
-    elif "Неверный пароль" in post_response.text:
-        raise InvalidPasswordError("Ошибка авторизации: Неверный пароль")
-
-    return session
