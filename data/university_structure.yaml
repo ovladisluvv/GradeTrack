@@ -1,0 +1,33 @@
+faculties:
+  vmk: "ВМК"
+
+programs:
+  vmk:
+    pmi: "ПМИ"
+    fiit: "ФИИТ"
+
+departments:
+  vmk:
+    pmi:
+      ani: "АНИ"
+      asvk: "АСВК"
+      aya: "АЯ"
+      vm: "ВМ"
+      vtm: "ВТМ"
+      ib1: "ИБ-1"
+      ib2: "ИБ-2"
+      iit: "ИИТ"
+      io: "ИО"
+      mk: "МК"
+      mmp: "ММП"
+      ms: "МС"
+      mf: "МФ"
+      ndsipu: "НДСиПУ"
+      om: "ОМ"
+      ou: "ОУ"
+      sa: "СА"
+      ski: "СКИ"
+      sp: "СП"
+    fiit:
+      bi: "БИ"
+      pi: "ПИ"
