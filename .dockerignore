@@ -1,0 +1,19 @@
+.git
+.gitignore
+**/__pycache__
+*.py[codz]
+*.so
+docs/
+README.md
+CLAUDE.md
+
+# Stale scrape cache produced at runtime by the CLI
+data/grades.html
+
+# Local environments / tooling junk
+.venv
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
