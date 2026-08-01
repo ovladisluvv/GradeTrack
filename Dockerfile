@@ -29,6 +29,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY data/ ./data/
 COPY config/ ./config/
+COPY assets/ ./assets/
 
 ENV QT_QPA_PLATFORM=xcb \
     QT_X11_NO_MITSHM=1 \

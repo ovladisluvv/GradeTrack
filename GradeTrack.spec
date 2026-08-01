@@ -3,6 +3,7 @@
 # Build:  pyinstaller GradeTrack.spec   (run from the repository root)
 # Produces a single-file, windowed executable; on macOS also a GradeTrack.app bundle.
 import sys
+from pathlib import Path
 
 # Resources bundled into the executable. At runtime they are unpacked under
 # sys._MEIPASS, which utils.resource_path() resolves. Source path -> path inside bundle.
@@ -10,7 +11,13 @@ datas = [
     ("data", "data"),          # university_structure.yaml, test_grades.html, in_diploma/**
     ("config", "config"),      # config.yaml (URLs only, no secrets)
     ("src/gui/fonts", "fonts"),  # bundled fonts, loaded via theme.get_source_path("fonts", ...)
+    ("assets", "assets"),      # icon.png, loaded via utils.resource_path("assets", ...)
 ]
+
+# Executable/bundle icon. PyInstaller converts a source PNG to .ico (Windows) or
+# .icns (macOS) at build time, which requires Pillow in the build environment.
+_icon_path = Path("assets/icon.png")
+icon_file = str(_icon_path) if _icon_path.exists() else None
 
 a = Analysis(
     ["src/gui/app.py"],
@@ -46,14 +53,14 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,
+    icon=icon_file,
 )
 
 if sys.platform == "darwin":
     app = BUNDLE(
         exe,
         name="GradeTrack.app",
-        icon=None,
+        icon=icon_file,
         bundle_identifier="ru.msu.gradetrack",
         info_plist={"NSHighResolutionCapable": True},
     )
