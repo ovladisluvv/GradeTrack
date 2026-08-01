@@ -223,6 +223,30 @@ QPushButton#zoom_button:pressed {{
     border-color: {COLOR_PRIMARY};
 }}
 
+/* "Switch user" control button resetting the wizard to the start */
+QPushButton#reset_user_button {{
+    background-color: {COLOR_BTN_BG};
+    color: {COLOR_TEXT};
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 6px;
+    padding: 2px 12px;
+    min-height: 26px;
+    font-family: {body_stack};
+    font-size: 9pt;
+}}
+
+QPushButton#reset_user_button:hover {{
+    background-color: {COLOR_BTN_HOVER_BG};
+    border-color: {COLOR_PRIMARY};
+    color: {COLOR_BTN_HOVER_TEXT};
+}}
+
+QPushButton#reset_user_button:pressed {{
+    background-color: {COLOR_PRIMARY};
+    color: {COLOR_BG};
+    border-color: {COLOR_PRIMARY};
+}}
+
 /* Labels inside the UI */
 QLabel {{
     color: {COLOR_TEXT};

@@ -2,14 +2,7 @@ import logging
 from PyQt6.QtCore import QObject, QThread, pyqtSignal, QTimer
 
 from utils import load_config, resource_path
-from web import (
-    auth_lk,
-    scrape_grades,
-    InvalidEmailError,
-    InvalidPasswordError,
-    AuthError,
-    GradesPageLoadError
-)
+from web import auth_lk, scrape_grades, WebClientError
 from services import analyze_from_html
 from core import parse_grades, GradesAnalysisResult
 from gui import TerminalView, WizardView
@@ -35,17 +28,8 @@ class AuthWorker(QObject):
             html = scrape_grades(session=session, grades_url=self._grades_url)
             self.finished.emit(html)
 
-        except InvalidEmailError:
-            self.failed.emit("Неверный email. Проверьте данные и попробуйте снова")
-
-        except InvalidPasswordError:
-            self.failed.emit("Неверный пароль. Проверьте данные и попробуйте снова")
-
-        except GradesPageLoadError:
-            self.failed.emit("Не удалось загрузить страницу оценок. Попробуйте позже")
-
-        except AuthError:
-            self.failed.emit("Не удалось авторизоваться (страница входа недоступна или изменилась)")
+        except WebClientError as e:
+            self.failed.emit(str(e))
 
         except Exception as e:
             logger.exception("Unexpected error during authentication/scraping")
@@ -112,6 +96,21 @@ class StateManager(QObject):
             return
 
         self._prompt_login()
+
+    def reset_to_start(self) -> None:
+        """Drops all user data and restarts the wizard from the login prompt"""
+        self._detach_auth_worker()
+
+        self.email = ""
+        self.password = ""
+        self.selected_faculty = ""
+        self.selected_program = ""
+        self.selected_department = None
+        self.retakes = 0
+        self.raw_html = ""
+        self.max_completed_semester = 0
+
+        self.start()
 
     def handle_line_entered(self, text: str) -> None:
         """Dispatcher for console-input submissions, keyed on the current state"""
@@ -384,6 +383,18 @@ class StateManager(QObject):
         if self._auth_thread is not None:
             self._auth_thread.deleteLater()
             self._auth_thread = None
+
+    def _detach_auth_worker(self) -> None:
+        """Disconnects a running auth worker from the UI so its late result cannot affect the new session"""
+        if self._auth_worker is None:
+            return
+
+        try:
+            self._auth_worker.finished.disconnect(self._on_auth_finished)
+            self._auth_worker.failed.disconnect(self._on_auth_failed)
+
+        except TypeError:
+            pass # already disconnected
 
     def _load_local_test_grades(self) -> None:
         """Loads grades HTML from the bundled local test file (offline test account)"""

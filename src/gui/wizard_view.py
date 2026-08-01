@@ -14,8 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class WizardView(QWidget):
-    """A dynamic control panel that renders selection buttons for the current wizard stage
-    (faculty, program, department, action, semesters)"""
+    """
+    A dynamic control panel that renders selection buttons for the current wizard stage
+    (faculty, program, department, action, semesters)
+    """
 
     # Detects when an option button is clicked: (option_id, button_text)
     option_selected = pyqtSignal(str, str) 
@@ -66,6 +68,8 @@ class WizardView(QWidget):
                 col = 0
                 row += 1
 
+        self._equalize_button_widths()
+
     def clear_options(self) -> None:
         """Removes all buttons from the panel"""
         for button in self._buttons:
@@ -79,6 +83,17 @@ class WizardView(QWidget):
         """Enables or disables all current buttons (used while work is in progress)"""
         for button in self._buttons:
             button.setEnabled(not is_loading)
+
+    def _equalize_button_widths(self) -> None:
+        """Gives every button the width of the widest one so grid columns stay uniform"""
+        widest = self.MIN_BUTTON_WIDTH
+
+        for button in self._buttons:
+            button.ensurePolished() # applies the stylesheet font before measuring
+            widest = max(widest, button.sizeHint().width())
+
+        for button in self._buttons:
+            button.setFixedWidth(widest)
 
     def _make_button(self, opt_id: str, text: str) -> QPushButton:
         """Makes a button for the given option and connects its click signal to the selection handler"""

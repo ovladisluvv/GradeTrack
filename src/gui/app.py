@@ -1,5 +1,6 @@
 import sys
 from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -11,6 +12,7 @@ from PyQt6.QtWidgets import (
     QPushButton
 )
 
+from utils import resource_path
 from gui import (
     init_fonts,
     build_stylesheet,
@@ -40,6 +42,11 @@ class MainWindow(QMainWindow):
 
         top_bar = QHBoxLayout()
         top_bar.setContentsMargins(0, 0, 0, 0)
+        self.reset_user_btn = QPushButton("Выбрать другого пользователя", self)
+        self.reset_user_btn.setObjectName("reset_user_button")
+        self.reset_user_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.reset_user_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        top_bar.addWidget(self.reset_user_btn)
         top_bar.addStretch(1)
         self.zoom_out_btn = self._make_zoom_button("−", self.terminal.decrease_font)
         self.zoom_in_btn = self._make_zoom_button("+", self.terminal.increase_font)
@@ -52,7 +59,7 @@ class MainWindow(QMainWindow):
 
         self.wizard = WizardView(central)
 
-        self.footer = QLabel("GradeTrack v1.0 · made by ovladisluvv · 2026", central)
+        self.footer = QLabel("GradeTrack v1.1 · made by ovladisluvv · 2026", central)
         self.footer.setObjectName("footer_label")
         self.footer.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
@@ -67,6 +74,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
 
         self.state_manager = StateManager(self.terminal, self.wizard)
+        self.reset_user_btn.clicked.connect(self.state_manager.reset_to_start)
         QTimer.singleShot(0, self.state_manager.start)
 
     def keyPressEvent(self, event):
@@ -96,6 +104,10 @@ def main():
 
     heading_family, body_family = init_fonts()
     app.setStyleSheet(build_stylesheet(heading_family, body_family))
+
+    icon_path = resource_path("assets", "icon.png")
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     window = MainWindow(heading_family=heading_family)
     window.show()
