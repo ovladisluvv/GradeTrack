@@ -170,7 +170,7 @@ class StateManager(QObject):
         if self.max_completed_semester < 4 or not available:
             options[self.DEPARTMENT_NONE_ID] = "Нет кафедры"
 
-        self.wizard.set_options(self._options_with_back(options), columns=2)
+        self.wizard.set_options(self._options_with_back(options), columns=4)
         self.wizard.set_loading_state(False)
 
     def transition_to_action_selection(self) -> None:
