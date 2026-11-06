@@ -23,6 +23,7 @@ class WizardView(QWidget):
     option_selected = pyqtSignal(str, str) 
 
     MIN_BUTTON_WIDTH = 110
+    BACK_ID = "__back__"
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -48,7 +49,7 @@ class WizardView(QWidget):
         self._buttons: list[QPushButton] = []
 
     def set_options(self, options: dict[str, str], columns: int = 2) -> None:
-        """Renders buttons from an {id: label} dict, row-major, columns"""
+        """Renders choices in a grid with a separate, centered back button below"""
         if columns < 1:
             logger.error(f"Invalid columns value for WizardView: {columns}")
             raise ValueError("Error: Columns has to be >= 1")
@@ -59,14 +60,25 @@ class WizardView(QWidget):
             logger.warning("WizardView received empty options")
             return
 
+        choice_count = len(options) - (self.BACK_ID in options)
+        columns = max(1, min(columns, choice_count))
         row, col = 0, 0
         for opt_id, text in options.items():
+            if opt_id == self.BACK_ID:
+                continue
+
             self._grid_layout.addWidget(self._make_button(opt_id, text), row, col)
             col += 1
 
             if col >= columns:
                 col = 0
                 row += 1
+
+        if self.BACK_ID in options:
+            back_button = self._make_button(self.BACK_ID, options[self.BACK_ID])
+            self._grid_layout.addWidget(
+                back_button, row + (col > 0), 0, 1, columns, Qt.AlignmentFlag.AlignHCenter
+            )
 
         self._equalize_button_widths()
 
