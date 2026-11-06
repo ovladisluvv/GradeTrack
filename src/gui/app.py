@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
 
         self.wizard = WizardView(central)
 
-        self.footer = QLabel("GradeTrack v1.1 · made by ovladisluvv · 2026", central)
+        self.footer = QLabel("GradeTrack v1.2 · made by ovladisluvv · 2026", central)
         self.footer.setObjectName("footer_label")
         self.footer.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
