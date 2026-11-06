@@ -38,8 +38,9 @@ class AuthWorker(QObject):
 
 class StateManager(QObject):
     """Controller driving the wizard view, orchestrating the terminal, the button panel and data processing"""
+    FACULTY_OTHER_ID = "faculty_other"
     DEPARTMENT_NONE_ID = "dep_none"
-    BACK_ID = "__back__"
+    BACK_ID = WizardView.BACK_ID
     BACK_LABEL = "← Назад"
 
     # Offline test account: skips the network and reads a bundled local HTML file
@@ -53,6 +54,7 @@ class StateManager(QObject):
         self.wizard = wizard_view
 
         self.current_state = "INIT"
+        self.stage = 0
 
         self.login_url = ""
         self.grades_url = ""
@@ -81,6 +83,7 @@ class StateManager(QObject):
 
     def start(self) -> None:
         """Prints the banner and starts the wizard from the login prompt"""
+        self.stage = 0
         self.terminal.clear_screen()
         self.wizard.clear_options()
         self.terminal.print_line("GradeTrack", "bright", heading=True)
@@ -132,22 +135,24 @@ class StateManager(QObject):
                 return
 
             self.retakes = max(0, value)
+            self.stage += 1
             self.transition_to_action_selection()
 
     def transition_to_faculty_selection(self) -> None:
         """Starts the wizard at the faculty selection stage"""
         self.current_state = "SELECT_FACULTY"
         self.terminal.set_input_enabled(False)
-        self.terminal.print_line("\n[ЭТАП 1] Выберите факультет", "info", heading=True)
+        self.terminal.print_line(f"\n[ЭТАП {self.stage}] Выберите факультет", "info", heading=True)
 
-        self.wizard.set_options(self.faculties, columns=1)
+        options = {**self.faculties, self.FACULTY_OTHER_ID: "Другой"}
+        self.wizard.set_options(options, columns=1)
         self.wizard.set_loading_state(False)
 
     def transition_to_program_selection(self) -> None:
         """Transitions the wizard to the program selection stage"""
         self.current_state = "SELECT_PROGRAM"
         self.terminal.set_input_enabled(False)
-        self.terminal.print_line("\n[ЭТАП 2] Выберите программу обучения", "info", heading=True)
+        self.terminal.print_line(f"\n[ЭТАП {self.stage}] Выберите программу обучения", "info", heading=True)
 
         available = self.programs.get(self.selected_faculty, {})
         self.wizard.set_options(self._options_with_back(available), columns=1)
@@ -157,7 +162,7 @@ class StateManager(QObject):
         """Transitions the wizard to the department selection stage"""
         self.current_state = "SELECT_DEPARTMENT"
         self.terminal.set_input_enabled(False)
-        self.terminal.print_line("\n[ЭТАП 3] Выберите кафедру", "info", heading=True)
+        self.terminal.print_line(f"\n[ЭТАП {self.stage}] Выберите кафедру", "info", heading=True)
 
         available = self.departments.get(self.selected_faculty, {}).get(self.selected_program, {})
         options = {opt_id: label for opt_id, label in sorted(available.items(), key=lambda kv: kv[1])}
@@ -172,12 +177,11 @@ class StateManager(QObject):
         """Transitions the wizard to the action selection stage"""
         self.current_state = "SELECT_ACTION"
         self.terminal.set_input_enabled(False)
-        self.terminal.print_line("\n[ЭТАП 5] Что рассчитать", "info", heading=True)
+        self.terminal.print_line(f"\n[ЭТАП {self.stage}] Что рассчитать", "info", heading=True)
 
-        actions = {
-            "action_avg": "Средний балл",
-            "action_diploma": "Красный диплом",
-        }
+        actions = {"action_avg": "Средний балл"}
+        if self.selected_faculty != self.FACULTY_OTHER_ID:
+            actions["action_diploma"] = "Красный диплом"
 
         self.wizard.set_options(self._options_with_back(actions), columns=2)
         self.wizard.set_loading_state(False)
@@ -204,9 +208,17 @@ class StateManager(QObject):
 
         self.terminal.print_line(f"> {option_text}", "primary", typewriter=False)
 
+        if self.current_state in ("SELECT_FACULTY", "SELECT_PROGRAM", "SELECT_DEPARTMENT"):
+            self.stage += 1
+
         if self.current_state == "SELECT_FACULTY":
             self.selected_faculty = option_id
-            self.transition_to_program_selection()
+            self.selected_program = ""
+            self.selected_department = None
+            if option_id == self.FACULTY_OTHER_ID:
+                self._prompt_retakes()
+            else:
+                self.transition_to_program_selection()
 
         elif self.current_state == "SELECT_PROGRAM":
             self.selected_program = option_id
@@ -249,7 +261,7 @@ class StateManager(QObject):
 
         self.terminal.print_kv("Без учета пересдач: ", f"{result.avg_grade_wo_retake:.2f}")
 
-        if is_all:
+        if is_all and self.selected_faculty != self.FACULTY_OTHER_ID:
             self.terminal.print_kv("Средний балл диплома: ", f"{result.avg_diploma_grade:.2f}")
 
         self._loop_back_to_actions()
@@ -345,7 +357,7 @@ class StateManager(QObject):
         self.current_state = "INPUT_RETAKES"
         self.wizard.set_options({self.BACK_ID: self.BACK_LABEL}, columns=1)
         self.wizard.set_loading_state(False)
-        self.terminal.print_line("\n[ЭТАП 4] Введите число пересдач", "info", heading=True)
+        self.terminal.print_line(f"\n[ЭТАП {self.stage}] Введите число пересдач", "info", heading=True)
         self.terminal.request_input("(0, если пересдач не было):", numeric=True)
 
     def _start_auth(self) -> None:
@@ -436,6 +448,7 @@ class StateManager(QObject):
             "Данные загружены. Обнаружено семестров с оценками: ",
             self.max_completed_semester,
         )
+        self.stage = 1
         self.transition_to_faculty_selection()
 
     def _on_auth_failed(self, message: str) -> None:
@@ -446,12 +459,18 @@ class StateManager(QObject):
     def _go_back(self) -> None:
         """Returns to the selection of the previous step, based on the current state"""
         st = self.current_state
+        if st in ("SELECT_PROGRAM", "SELECT_DEPARTMENT", "INPUT_RETAKES", "SELECT_ACTION"):
+            self.stage -= 1
+
         if st == "SELECT_PROGRAM":
             self.transition_to_faculty_selection()
         elif st == "SELECT_DEPARTMENT":
             self.transition_to_program_selection()
         elif st == "INPUT_RETAKES":
-            self.transition_to_department_selection()
+            if self.selected_faculty == self.FACULTY_OTHER_ID:
+                self.transition_to_faculty_selection()
+            else:
+                self.transition_to_department_selection()
         elif st == "SELECT_ACTION":
             self._prompt_retakes()
         elif st == "SELECT_SEMESTERS":

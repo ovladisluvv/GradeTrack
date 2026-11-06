@@ -48,6 +48,9 @@ class DiplomaSubjectsInfo:
         department: str | None = None
     ) -> list[str]:
         """Get the list of subjects included in the diploma for the given semester and student info"""
+        if not study_program:
+            return []
+
         filepath = self.get_semester_file_path(
             faculty=faculty,
             study_program=study_program,
