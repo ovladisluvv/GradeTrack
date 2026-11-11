@@ -1,7 +1,9 @@
 from collections import deque
-from PyQt6.QtWidgets import QWidget, QTextBrowser, QLineEdit, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QTextBrowser, QLineEdit, QVBoxLayout, QProxyStyle, QStyle
 from PyQt6.QtCore import QTimer, Qt, pyqtSignal
-from PyQt6.QtGui import QTextCursor, QTextCharFormat, QColor, QIntValidator
+from PyQt6.QtGui import QTextCursor, QTextCharFormat, QColor, QIntValidator, QIcon
+
+from utils import resource_path
 
 from gui import (
     COLOR_PRIMARY,
@@ -186,6 +188,16 @@ class OutputScreen(QTextBrowser):
         self.force_finish_typing()
 
 
+class _ConsoleInputStyle(QProxyStyle):
+    """Sizes the password icon and aligns it with the terminal scrollbar"""
+    def pixelMetric(self, metric, option=None, widget=None):
+        if metric == QStyle.PixelMetric.PM_LineEditIconSize:
+            return 20
+        if metric == QStyle.PixelMetric.PM_LineEditIconMargin:
+            return 10
+        return super().pixelMetric(metric, option, widget)
+
+
 class TerminalView(QWidget):
     """The terminal screen: an output area with a typewriter effect and an integrated console input line at the bottom used for login, password and the retakes count"""
     line_entered = pyqtSignal(str)
@@ -213,8 +225,18 @@ class TerminalView(QWidget):
         self._output = OutputScreen(self)
         self._input = QLineEdit(self)
         self._input.setObjectName("console_input")
+        self._input_style = _ConsoleInputStyle()
+        self._input_style.setParent(self._input)
+        self._input.setStyle(self._input_style)
         self._input.setPlaceholderText("")
         self._input.returnPressed.connect(self._on_return_pressed)
+
+        password_icon = QIcon(str(resource_path("assets", "eye-on.svg")))
+        self._password_action = self._input.addAction(password_icon, QLineEdit.ActionPosition.TrailingPosition)
+        self._password_action.setText("Показать пароль")
+        self._password_action.setCheckable(True)
+        self._password_action.setVisible(False)
+        self._password_action.toggled.connect(self._toggle_password_visibility)
 
         layout.addWidget(self._output, stretch=1)
         layout.addWidget(self._input)
@@ -300,6 +322,8 @@ class TerminalView(QWidget):
             self.print_line(prompt, "info")
 
         self._is_password = password
+        self._password_action.setChecked(False)
+        self._password_action.setVisible(password)
         self._input.setEchoMode(QLineEdit.EchoMode.Password if password else QLineEdit.EchoMode.Normal)
         self._input.setValidator(self._int_validator if numeric else None)
         self._input.clear()
@@ -312,6 +336,13 @@ class TerminalView(QWidget):
 
         if enabled:
             self._input.setFocus()
+
+    def _toggle_password_visibility(self, visible: bool) -> None:
+        """Shows or masks the password without changing the input text"""
+        self._input.setEchoMode(QLineEdit.EchoMode.Normal if visible else QLineEdit.EchoMode.Password)
+        self._password_action.setText("Скрыть пароль" if visible else "Показать пароль")
+        icon_name = "eye-off.svg" if visible else "eye-on.svg"
+        self._password_action.setIcon(QIcon(str(resource_path("assets", icon_name))))
 
     def _body_size(self) -> float:
         """Returns the current point size of body text, scaled by the current scale factor"""
