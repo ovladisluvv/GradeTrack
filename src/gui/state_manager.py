@@ -39,7 +39,6 @@ class AuthWorker(QObject):
 class StateManager(QObject):
     """Controller driving the wizard view, orchestrating the terminal, the button panel and data processing"""
     FACULTY_OTHER_ID = "faculty_other"
-    DEPARTMENT_NONE_ID = "dep_none"
     BACK_ID = WizardView.BACK_ID
     BACK_LABEL = "← Назад"
 
@@ -160,16 +159,19 @@ class StateManager(QObject):
 
     def transition_to_department_selection(self) -> None:
         """Transitions the wizard to the department selection stage"""
+        available = self.departments.get(self.selected_faculty, {}).get(self.selected_program, {})
+
+        if (self.selected_faculty == "vmk" and self.max_completed_semester < 4) or not available:
+            self.selected_department = None
+            self.terminal.print_line("Кафедра: Нет кафедры", "primary", typewriter=False)
+            self._prompt_retakes()
+            return
+
         self.current_state = "SELECT_DEPARTMENT"
         self.terminal.set_input_enabled(False)
         self.terminal.print_line(f"\n[ЭТАП {self.stage}] Выберите кафедру", "info", heading=True)
 
-        available = self.departments.get(self.selected_faculty, {}).get(self.selected_program, {})
         options = {opt_id: label for opt_id, label in sorted(available.items(), key=lambda kv: kv[1])}
-
-        if self.max_completed_semester < 4 or not available:
-            options[self.DEPARTMENT_NONE_ID] = "Нет кафедры"
-
         self.wizard.set_options(self._options_with_back(options), columns=4)
         self.wizard.set_loading_state(False)
 
@@ -225,7 +227,7 @@ class StateManager(QObject):
             self.transition_to_department_selection()
 
         elif self.current_state == "SELECT_DEPARTMENT":
-            self.selected_department = None if option_id == self.DEPARTMENT_NONE_ID else option_id
+            self.selected_department = option_id
             self._prompt_retakes()
 
         elif self.current_state == "SELECT_ACTION":
@@ -289,7 +291,7 @@ class StateManager(QObject):
             )
         else:
             self.terminal.print_line(
-                "Максимальное число четверок скрыто (выберите кафедру для точного расчета)",
+                "Отображение максимально допустимого числа четверок для получения красного диплома пока недоступно - нет кафедры. Выбор кафедры будет доступен позже, когда вы закончите обучение на 4 семестре",
                 "info",
             )
 
@@ -469,6 +471,8 @@ class StateManager(QObject):
         elif st == "INPUT_RETAKES":
             if self.selected_faculty == self.FACULTY_OTHER_ID:
                 self.transition_to_faculty_selection()
+            elif self.selected_department is None:
+                self.transition_to_program_selection()
             else:
                 self.transition_to_department_selection()
         elif st == "SELECT_ACTION":
